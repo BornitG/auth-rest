@@ -1,1 +1,2 @@
-export * from './plugins/envs';
+export * from './envs';
+export * from './regular-exp';

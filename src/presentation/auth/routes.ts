@@ -1,4 +1,6 @@
 import { Router } from "express";
+import { AuthController } from "./controller";
+import { AuthService } from "../services";
 
 
 
@@ -8,11 +10,15 @@ export class AuthRoutes {
 
         const router = Router();
 
-        router.get('/login', (req, res) => {
-            res.json('Login');
-        })
+        const authService = new AuthService();
 
-        return router
+        const controller = new AuthController( authService );
+
+        router.post('/login', controller.login );
+
+        router.post('/register', controller.register );
+
+        return router;
     }
 
 }
