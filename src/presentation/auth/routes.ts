@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { AuthController } from "./controller";
 import { AuthService } from "../services";
+import { AuthMiddlewares } from "../middlewares/auth.middlewares";
 
 
 
@@ -16,7 +17,7 @@ export class AuthRoutes {
 
         router.post('/login', controller.login );
 
-        router.post('/register', controller.register );
+        router.post('/register', [ AuthMiddlewares.validatePassword ], controller.register );
 
         return router;
     }

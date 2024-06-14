@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { AuthService } from "../services";
-import { CustomError, RegisterUserDTO } from "../../domain";
+import { CustomError, LoginUserDTO, RegisterUserDTO } from "../../domain";
 
 
 
@@ -10,7 +10,6 @@ export class AuthController {
         public readonly authService: AuthService,
     ) {}
 
-    // todo handleError
     private handleError = ( error: unknown, res: Response ) => {
         if ( error instanceof CustomError ) {
             return res.status( error.statusCode ).json({ error: error.message });
@@ -21,15 +20,12 @@ export class AuthController {
     }
 
     login = ( req: Request, res: Response ) => {
-        const { email, password } = req.body;
-        if( !email || !password ) return res.status(400).json('Invalid credentials');
-        return res.json({
-            // id: 'jaslkfjkllkasu809asnl',
-            // user,
-            email,
-            password,
-            // token: 'ejshsa,as.zjaoasjflk'
-        });
+        const [ error, loginDto ] = LoginUserDTO.create(req.body);
+        if ( error ) return res.status(400).json({ error });
+
+        this.authService.loginUser( loginDto! )
+            .then( user => res.json( user ) )
+            .catch( error => this.handleError( error, res ) );
     };
 
     register = ( req: Request, res: Response ) => {

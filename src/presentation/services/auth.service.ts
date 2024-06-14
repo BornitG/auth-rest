@@ -1,5 +1,6 @@
+import { bcryptAdapter } from "../../config/bcrypt.adapter";
 import { UserModel } from "../../data/mongo";
-import { CustomError, RegisterUserDTO, UserEntity } from "../../domain";
+import { CustomError, LoginUserDTO, RegisterUserDTO, UserEntity } from "../../domain";
 
 
 
@@ -19,13 +20,14 @@ export class AuthService {
 
             const user = new UserModel( registerUserDTO );
 
-            // todo encrypt password (bcrypt)
+            // Encrypt password
+            user.password = bcryptAdapter.hash( registerUserDTO.password );
 
             await user.save();
 
             // todo emailConfirmation
 
-            const { ...userEntity } = UserEntity.fromObject( user );
+            const { password, ...userEntity } = UserEntity.fromObject( user );
 
             // todo token = JWT <-- auth user
 
@@ -37,6 +39,35 @@ export class AuthService {
             throw CustomError.internalServer(`${ error }`);
         }
 
+    };
+
+    public async loginUser( loginUserDTO: LoginUserDTO ) {
+        // Find document by email or username
+        const user = await UserModel.findOne({ 
+            $or: [
+                { email: loginUserDTO.email },
+                { username: loginUserDTO.username } 
+            ]
+        }); 
+        if ( !user ) throw CustomError.badRequest('User not found');
+
+        // Compare password
+        const isPasswordValid = bcryptAdapter.compare( loginUserDTO.password, user.password );
+        if ( !isPasswordValid ) throw CustomError.badRequest('Invalid credentials');
+
+        try {
+            // todo generate JWT token
+
+            const { password, ...userEntity } = UserEntity.fromObject( user );
+
+            return {
+                user: userEntity
+            }
+
+        } catch (error) {
+            throw CustomError.internalServer(`${ error }`);
+        }
+
     }
 
-}
+};
