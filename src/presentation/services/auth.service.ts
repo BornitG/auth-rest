@@ -1,4 +1,5 @@
 import { bcryptAdapter } from "../../config/bcrypt.adapter";
+import { JwtAdapter } from "../../config/jwt.adapter";
 import { UserModel } from "../../data/mongo";
 import { CustomError, LoginUserDTO, RegisterUserDTO, UserEntity } from "../../domain";
 
@@ -29,10 +30,13 @@ export class AuthService {
 
             const { password, ...userEntity } = UserEntity.fromObject( user );
 
-            // todo token = JWT <-- auth user
+            // Generate JWT
+            const token = await JwtAdapter.generateToken({ id: user.id });
+            if ( !token ) throw CustomError.internalServer('Error generating token JWT');
 
             return {
-                user: userEntity
+                user: userEntity,
+                token: token
             };
 
         } catch (error) {
@@ -56,12 +60,16 @@ export class AuthService {
         if ( !isPasswordValid ) throw CustomError.badRequest('Invalid credentials');
 
         try {
-            // todo generate JWT token
 
-            const { password, ...userEntity } = UserEntity.fromObject( user );
+            const { password, ...userInfo } = UserEntity.fromObject( user );
+            
+            // Generate JWT
+            const token = await JwtAdapter.generateToken({ id: user.id });
+            if ( !token ) throw CustomError.internalServer('Error generating token JWT');
 
             return {
-                user: userEntity
+                user: userInfo,
+                token: token
             }
 
         } catch (error) {
