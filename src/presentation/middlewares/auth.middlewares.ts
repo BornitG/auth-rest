@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { JwtAdapter } from "../../config/jwt.adapter";
 import { UserModel } from "../../data/mongo";
 import { UserEntity } from "../../domain";
+import { CONSTANTS } from "../../utils/constants";
 
 
 
@@ -35,10 +36,10 @@ export class AuthMiddlewares {
     }
 
     // Validate role
-    validateRole( req: Request, res: Response, next: NextFunction ) {
-        const { role } = req.body; //['ADMIN_ROLE', 'USER_ROLE']
-
-        if ( role !== 'ADMIN_ROLE' && role !== 'USER_ROLE' ) return res.status(403).json({ error: 'Access denied' });
+    static validateRole( req: Request, res: Response, next: NextFunction ) {
+        const { role } = req.body.user as UserEntity; //['ADMIN_ROLE', 'USER_ROLE']
+        console.log(req.body.user);
+        if ( !role.includes( CONSTANTS.ADMIN_ROLE ) && !role.includes( CONSTANTS.USER_ROLE ) ) return res.status(403).json({ error: 'Access denied' });
 
         next();
     }
